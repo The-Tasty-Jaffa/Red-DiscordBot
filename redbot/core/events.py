@@ -4,6 +4,8 @@ import datetime
 import logging
 from datetime import timedelta
 from distutils.version import StrictVersion
+import asyncio
+import time
 
 import aiohttp
 import discord
@@ -30,6 +32,50 @@ ______         _           ______ _                       _  ______       _
 \_| \_\___|\__,_|          |___/ |_|___/\___\___/|_|  \__,_| \____/ \___/ \__|
 """
 
+def filler():
+    pass
+
+class timed_event:
+	def __init__(self):
+		self.time_event_functions = [{'FUNC':filler, 'TIME_LEFT':60, 'REQ_TIME':60}]
+
+	async def setup(self):
+		"""This must be called to start the timed_events,
+        asyncionous as __init__ cannot be"""
+        loop = asyncio.get_event_loop()
+		loop.create_task(self._time())
+        
+	async def _time(self):
+		while self.continue_loop:
+            time = time.time()
+			wait_for = min(self.time_event_functions,key=lambda value:value['TIME_LEFT'])
+            #Waits for smallest wanted time till triggering
+			await asyncio.sleep(wait_for['TIME_LEFT'])
+			time = await self.trigger_event(time) 
+
+	async def append_func(self, func, time:int):
+		"""Adds a function to the timer"""
+		self.time_event_functions.append({"FUNC":func, "TIME_LEFT": time, "REQ_TIME": time})
+
+	async def trigger_event(self, time):
+		"""Triggers any event which time has passed to be called"""
+		current_time = time.time()
+		for function in self.time_event_functions:
+			function['TIME_LEFT'] -= current_time - time #updates time left
+			if function['TIME_LEFT'] <= 0: #Checks if the function needs to be called
+				await function['FUNC']()
+				function['TIME_LEFT'] += function['REQ_TIME']
+		
+
+timed = timed_event()
+await timed.setup()
+
+def timer(func, time:int):
+    """Calls the function regularly after time has passed"""
+    a.append_func(func, time)
+	def wrapper(func):
+		return func
+	return wrapper
 
 def should_log_sentry(exception) -> bool:
     e = exception
