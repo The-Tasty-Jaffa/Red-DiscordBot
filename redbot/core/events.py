@@ -72,7 +72,7 @@ await timed.setup()
 
 def timer(func, time:int):
     """Calls the function regularly after time has passed"""
-    a.append_func(func, time)
+    timed.append_func(func, time)
     def wrapper(func):
         return func
     return wrapper
